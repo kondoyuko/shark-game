@@ -1,24 +1,26 @@
 // グローバル変数
-let game;
+let scene;
+let startScreen;
+let gameOverScreen;
 let shark;
 let fishes;
 let score = 0;
 let highScore = parseInt(localStorage.getItem('sharkGameHighScore')) || 0;
-let gameOver = false;
 let gameStarted = false;
-let startScreen;
-let scoreText;
+let gameOver = false;
 let timeText;
+let scoreText;
 let gameOverText;
 let highScoreText;
 let timeLeft = 30;
+const GAME_DURATION = 30;
 
 // Phaserの設定
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
     width: 800,
-    height: 450,
+    height: 600,
     backgroundColor: '#4488AA',
     scale: {
         mode: Phaser.Scale.FIT,
@@ -38,189 +40,216 @@ const config = {
 };
 
 // ゲームインスタンスの作成
-window.addEventListener('load', () => {
-    game = new Phaser.Game(config);
-});
+const game = new Phaser.Game(config);
+
+function create() {
+    scene = this;
+    this.cursors = this.input.keyboard.createCursorKeys();
+    
+    // スタート画面の作成
+    createStartScreen.call(this);
+    
+    // タッチ操作の初期化
+    this.touchStartPos = null;
+    
+    // タッチ操作のイベントリスナー
+    this.input.on('pointermove', (pointer) => {
+        if (this.touchStartPos && gameStarted && !gameOver) {
+            const dx = pointer.x - this.touchStartPos.x;
+            const dy = pointer.y - this.touchStartPos.y;
+            
+            if (Math.abs(dx) > 10) {
+                shark.body.setVelocityX(Math.sign(dx) * 300);
+                shark.setScale(dx > 0 ? -1 : 1, 1);
+            }
+            
+            if (Math.abs(dy) > 10) {
+                shark.body.setVelocityY(Math.sign(dy) * 300);
+            }
+            
+            this.touchStartPos = { x: pointer.x, y: pointer.y };
+        }
+    });
+    
+    this.input.on('pointerdown', (pointer) => {
+        this.touchStartPos = { x: pointer.x, y: pointer.y };
+    });
+    
+    this.input.on('pointerup', () => {
+        this.touchStartPos = null;
+        if (gameStarted && !gameOver) {
+            shark.body.setVelocity(0, 0);
+        }
+    });
+}
 
 function createStartScreen() {
-    startScreen = this.add.group();
-
-    const titleText = this.add.text(400, 120, 'シャーくんのおさかなキャッチ！', {
-        fontSize: '40px',
+    startScreen = scene.add.container(0, 0);
+    
+    const title = scene.add.text(config.width / 2, 120, 'シャーくんの\nおさかなキャッチ！', {
+        fontSize: '36px',
         fill: '#fff',
-        align: 'center'
-    });
-    titleText.setOrigin(0.5);
-
-    const sharkEmoji = this.add.text(400, 225, '🦈', {
-        fontSize: '72px',
         align: 'center',
-        padding: { x: 32, y: 32 }
-    });
-    sharkEmoji.setOrigin(0.5);
-
+        lineSpacing: 10
+    }).setOrigin(0.5);
+    
+    const sharkEmoji = scene.add.text(config.width / 2, 230, '🦈', {
+        fontSize: '64px',
+        padding: { x: 20, y: 20 }
+    }).setOrigin(0.5);
+    
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const controlsText = isMobile ? 
         'タップ＆ドラッグでシャーくんを動かして\n30秒以内にたくさんのおさかなを食べよう！' :
         '矢印キーでシャーくんを動かして\n30秒以内にたくさんのおさかなを食べよう！';
     
-    const instructionText = this.add.text(400, 330, controlsText, {
+    const instructions = scene.add.text(config.width / 2, 320, controlsText, {
+        fontSize: '20px',
+        fill: '#fff',
+        align: 'center',
+        lineSpacing: 10
+    }).setOrigin(0.5);
+    
+    const startButton = scene.add.text(config.width / 2, 400, 'クリックしてスタート！', {
         fontSize: '24px',
         fill: '#fff',
-        align: 'center'
-    });
-    instructionText.setOrigin(0.5);
-
-    startScreen.add(titleText);
-    startScreen.add(sharkEmoji);
-    startScreen.add(instructionText);
+        backgroundColor: '#4a90e2',
+        padding: { x: 20, y: 10 }
+    }).setOrigin(0.5);
+    
+    startButton.setInteractive({ useHandCursor: true })
+        .on('pointerover', () => startButton.setStyle({ fill: '#ff0' }))
+        .on('pointerout', () => startButton.setStyle({ fill: '#fff' }))
+        .on('pointerdown', () => startGame());
 
     // ハイスコアを右上に表示
-    updateHighScoreText.call(this);
+    const highScoreText = scene.add.text(
+        config.width - 16,
+        16,
+        'ハイスコア: ' + highScore + '匹',
+        {
+            fontSize: '20px',
+            fill: '#fff'
+        }
+    ).setOrigin(1, 0);
+    
+    startScreen.add([title, sharkEmoji, instructions, startButton, highScoreText]);
 }
 
-function create() {
-    // スタート画面の作成
-    createStartScreen.call(this);
-
-    // キーボード入力の設定
-    this.cursors = this.input.keyboard.createCursorKeys();
-
-    // タッチ操作の初期化
-    this.touchStartPos = null;
-
-    // タッチ操作のイベント設定
-    this.input.on('pointermove', (pointer) => {
-        if (gameStarted && !gameOver && this.touchStartPos) {
-            const deltaX = pointer.x - this.touchStartPos.x;
-            const deltaY = pointer.y - this.touchStartPos.y;
-            
-            shark.x += deltaX * 0.5;
-            shark.y += deltaY * 0.5;
-            
-            if (deltaX < 0) {
-                shark.setScale(1, 1);
-            } else if (deltaX > 0) {
-                shark.setScale(-1, 1);
-            }
-            
-            shark.x = Phaser.Math.Clamp(shark.x, 0, config.width);
-            shark.y = Phaser.Math.Clamp(shark.y, 0, config.height);
-            
-            this.touchStartPos = { x: pointer.x, y: pointer.y };
-        }
-    });
-
-    // タッチ開始
-    this.input.on('pointerdown', (pointer) => {
-        this.touchStartPos = { x: pointer.x, y: pointer.y };
-        if (!gameStarted) {
-            startGame.call(this);
-        } else if (gameOver) {
-            restartGame.call(this);
-        }
-    });
-
-    // タッチ終了
-    this.input.on('pointerup', () => {
-        this.touchStartPos = null;
-    });
-
-    // キーボードイベント
-    this.input.keyboard.on('keydown', () => {
-        if (!gameStarted) {
-            startGame.call(this);
-        } else if (gameOver) {
-            restartGame.call(this);
-        }
-    });
+function createGameOverScreen() {
+    gameOverScreen = scene.add.container(0, 0);
+    
+    const gameOverText = scene.add.text(config.width / 2, 200, 'ゲームオーバー！', {
+        fontSize: '48px',
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const finalScore = scene.add.text(config.width / 2, 300, `スコア: ${score}匹`, {
+        fontSize: '32px',
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const highScoreText = scene.add.text(config.width / 2, 350, `ハイスコア: ${highScore}匹`, {
+        fontSize: '32px',
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const restartButton = scene.add.text(config.width / 2, 450, 'もう一度遊ぶ', {
+        fontSize: '28px',
+        fill: '#fff',
+        backgroundColor: '#4a90e2',
+        padding: { x: 20, y: 10 }
+    }).setOrigin(0.5);
+    
+    restartButton.setInteractive({ useHandCursor: true })
+        .on('pointerover', () => restartButton.setStyle({ fill: '#ff0' }))
+        .on('pointerout', () => restartButton.setStyle({ fill: '#fff' }))
+        .on('pointerdown', () => {
+            gameOverScreen.destroy();
+            createStartScreen.call(scene);
+        });
+    
+    gameOverScreen.add([gameOverText, finalScore, highScoreText, restartButton]);
 }
 
 function startGame() {
     if (gameStarted) return;
     
-    gameStarted = true;
-    score = 0;
-    timeLeft = 30;
-    
     // スタート画面を削除
     if (startScreen) {
-        startScreen.clear(true, true);
+        startScreen.destroy();
     }
     
-    // ゲーム要素の初期化
-    initializeGameElements.call(this);
-
-    // タイマーの設定（ゲーム開始時のみ）
-    this.time.addEvent({
-        delay: 1000,
-        callback: updateTimer,
-        callbackScope: this,
-        repeat: 29  // 30秒のため、最初の1回 + 29回の繰り返し
-    });
-
-    // 魚の生成タイマー
-    this.time.addEvent({
-        delay: 1000,
-        callback: () => createFish.call(this),
-        callbackScope: this,
-        loop: true
-    });
-
-    // さらに追加の魚生成タイマー
-    this.time.addEvent({
-        delay: 1200,
-        callback: () => createFish.call(this),
-        callbackScope: this,
-        loop: true
-    });
-}
-
-function initializeGameElements() {
+    // ゲーム状態の初期化
+    gameStarted = true;
+    gameOver = false;
+    score = 0;
+    timeLeft = GAME_DURATION;
+    
     // シャーくんの作成
-    shark = this.add.text(400, 225, '🦈', { 
+    shark = scene.add.text(400, 225, '🦈', { 
         fontSize: '36px',
         padding: { x: 10, y: 10 }
     });
     shark.setOrigin(0.5);
     
     // シャーくんの物理演算設定
-    this.physics.world.enable(shark);
+    scene.physics.world.enable(shark);
     shark.body.setCollideWorldBounds(true);
     shark.body.setBounce(0);
     shark.body.setDrag(0);
+    
+    // 当たり判定のサイズと位置を調整（向きに関係なく中央に固定）
+    const hitboxSize = Math.min(shark.width, shark.height) * 0.6;
+    shark.body.setSize(hitboxSize, hitboxSize);
+    shark.body.setOffset(
+        (shark.width - hitboxSize) / 2,
+        (shark.height - hitboxSize) / 2
+    );
 
     // 魚グループの作成
-    fishes = this.physics.add.group({
-        allowGravity: false,
-        immovable: false,
-        bounceX: 0,
-        bounceY: 0,
-        dragX: 0,
-        dragY: 0
-    });
+    fishes = scene.physics.add.group();
 
     // タイマーテキストの作成（上部に配置）
-    timeText = this.add.text(16, 16, '残り時間: 30秒', {
+    timeText = scene.add.text(16, 16, '残り時間: ' + timeLeft + '秒', {
         fontSize: '24px',
         fill: '#fff'
     });
 
     // スコアテキストの作成（タイマーの下に配置）
-    scoreText = this.add.text(16, 56, 'スコア: 0匹', {
+    scoreText = scene.add.text(16, 56, 'スコア: 0匹', {
         fontSize: '24px',
         fill: '#fff'
     });
 
     // ハイスコアテキストの作成（右上に配置）
-    highScoreText = this.add.text(config.width - 16, 16, 'ハイスコア: ' + highScore + '匹', {
+    highScoreText = scene.add.text(config.width - 16, 16, 'ハイスコア: ' + highScore + '匹', {
         fontSize: '24px',
         fill: '#fff'
     });
     highScoreText.setOrigin(1, 0);
 
     // 衝突判定の設定
-    this.physics.add.overlap(shark, fishes, collectFish, null, this);
+    scene.physics.add.overlap(shark, fishes, collectFish, null, scene);
+
+    // 魚の生成タイマー
+    scene.time.addEvent({
+        delay: 1000,
+        callback: createFish,
+        callbackScope: scene,
+        loop: true
+    });
+
+    // ゲームタイマー
+    scene.time.addEvent({
+        delay: 1000,
+        callback: updateTimer,
+        callbackScope: scene,
+        loop: true
+    });
+
+    // 最初の魚を生成
+    createFish();
 }
 
 function update() {
@@ -229,19 +258,19 @@ function update() {
     const SPEED = 300;
 
     // キーボード入力の処理
-    if (this.cursors.left.isDown) {
+    if (scene.cursors.left.isDown) {
         shark.body.setVelocityX(-SPEED);
-        shark.setScale(1, 1);
-    } else if (this.cursors.right.isDown) {
+        shark.setScale(1, 1);  // 左向きに移動する場合、サメは右向き
+    } else if (scene.cursors.right.isDown) {
         shark.body.setVelocityX(SPEED);
-        shark.setScale(-1, 1);
+        shark.setScale(-1, 1);   // 右向きに移動する場合、サメは左向き
     } else {
         shark.body.setVelocityX(0);
     }
 
-    if (this.cursors.up.isDown) {
+    if (scene.cursors.up.isDown) {
         shark.body.setVelocityY(-SPEED);
-    } else if (this.cursors.down.isDown) {
+    } else if (scene.cursors.down.isDown) {
         shark.body.setVelocityY(SPEED);
     } else {
         shark.body.setVelocityY(0);
@@ -257,7 +286,7 @@ function update() {
 
 function collectFish(shark, fish) {
     fish.destroy();
-    score += 1;
+    score++;
     scoreText.setText('スコア: ' + score + '匹');
     
     if (score > highScore) {
@@ -273,23 +302,30 @@ function createFish() {
     const x = Math.random() < 0.5 ? -50 : config.width + 50;
     const y = Phaser.Math.Between(50, config.height - 50);
     
-    const fish = this.add.text(x, y, '🐟', { 
+    const fish = scene.add.text(x, y, '🐟', { 
         fontSize: '24px'
     });
     fish.setOrigin(0.5);
     
-    // 魚の物理演算を有効化
-    this.physics.world.enable(fish);
+    scene.physics.world.enable(fish);
+    
+    // 魚の当たり判定のサイズと位置を調整（向きに関係なく中央に固定）
+    const hitboxSize = Math.min(fish.width, fish.height) * 0.6;
+    fish.body.setSize(hitboxSize, hitboxSize);
+    fish.body.setOffset(
+        (fish.width - hitboxSize) / 2,
+        (fish.height - hitboxSize) / 2
+    );
+    
     fishes.add(fish);
     
     const speed = Phaser.Math.Between(100, 300);
-    
     if (x < 0) {
         fish.body.setVelocityX(speed);
-        fish.setScale(1, 1);
+        fish.setScale(-1, 1);
     } else {
         fish.body.setVelocityX(-speed);
-        fish.setScale(-1, 1);
+        fish.setScale(1, 1);
     }
 }
 
@@ -300,68 +336,44 @@ function updateTimer() {
     timeText.setText('残り時間: ' + timeLeft + '秒');
     
     if (timeLeft <= 0) {
-        endGame.call(this);
+        endGame.call(scene);
     }
 }
 
 function endGame() {
+    gameStarted = false;
     gameOver = true;
-
+    
+    // タイマーとスコアの表示を削除
+    if (timeText) timeText.destroy();
+    if (scoreText) scoreText.destroy();
+    if (highScoreText) highScoreText.destroy();
+    
+    // シャークと魚を削除
+    if (shark) shark.destroy();
+    if (fishes) fishes.clear(true, true);
+    
+    // ハイスコアを更新
     if (score > highScore) {
         highScore = score;
         localStorage.setItem('sharkGameHighScore', highScore);
     }
 
-    const gameOverMessage = 
-        '終了！\n' +
-        'スコア: ' + score + '匹\n' +
-        'タップしてリトライ';
-    
-    gameOverText = this.add.text(
-        config.width / 2,
-        config.height / 2,
-        gameOverMessage,
-        {
-            fontSize: '32px',
-            fill: '#fff',
-            align: 'center'
-        }
-    ).setOrigin(0.5);
-
-    this.input.on('pointerdown', () => restartGame.call(this));
-    fishes.clear(true, true);
+    createGameOverScreen();
 }
 
 function restartGame() {
-    gameOver = false;
-    gameStarted = false;
-    score = 0;
-    timeLeft = 30;
-    
-    if (gameOverText) gameOverText.destroy();
-    if (shark) shark.destroy();
-    if (scoreText) scoreText.destroy();
-    if (timeText) timeText.destroy();
-    if (highScoreText) highScoreText.destroy();
-    
-    fishes.clear(true, true);
-    createStartScreen.call(this);
-}
-
-function updateHighScoreText() {
-    if (highScoreText) {
-        highScoreText.destroy();
+    // ゲームオーバー画面を削除
+    if (gameOverScreen) {
+        gameOverScreen.destroy();
     }
     
-    highScoreText = this.add.text(
-        config.width - 16,
-        16,
-        'ハイスコア: ' + highScore + '匹',
-        {
-            fontSize: '24px',
-            fill: '#fff'
-        }
-    ).setOrigin(1, 0);
+    // ゲーム状態をリセット
+    gameStarted = false;
+    gameOver = false;
+    score = 0;
+    timeLeft = GAME_DURATION;
     
-    startScreen.add(highScoreText);
+    // スタート画面を作成
+    createStartScreen.call(scene);
 }
