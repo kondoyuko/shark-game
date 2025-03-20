@@ -46,8 +46,11 @@ const TOUCH_CONTROL = {
     startX: 0,
     startY: 0,
     moveThreshold: 5,
-    speedMultiplier: 1.5
+    speed: 200  // スマホ用の速度を設定
 };
+
+// キーボード操作の速度
+const KEYBOARD_SPEED = 150;
 
 // Phaserの設定
 const config = {
@@ -122,14 +125,13 @@ function create() {
             const dy = pointer.y - TOUCH_CONTROL.startY;
             
             if (Math.abs(dx) > TOUCH_CONTROL.moveThreshold || Math.abs(dy) > TOUCH_CONTROL.moveThreshold) {
-                const speed = 150;  // キーボード操作と同じ速度
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const normalizedDx = dx / distance;
                 const normalizedDy = dy / distance;
                 
                 shark.body.setVelocity(
-                    normalizedDx * speed,
-                    normalizedDy * speed
+                    normalizedDx * TOUCH_CONTROL.speed,
+                    normalizedDy * TOUCH_CONTROL.speed
                 );
                 
                 if (Math.abs(normalizedDx) > 0.1) {
@@ -180,25 +182,23 @@ function createStartScreen() {
 function update() {
     if (!gameStarted || gameOver) return;
     
-    const SPEED = 150;  // 速度をさらに遅く
-    
     // キーボード操作
     if (!TOUCH_CONTROL.enabled) {
         let velocityX = 0;
         let velocityY = 0;
         
         if (scene.cursors.left.isDown) {
-            velocityX = -SPEED;
+            velocityX = -KEYBOARD_SPEED;
             shark.setScale(CHARACTER_SCALES.shark, CHARACTER_SCALES.shark);
         } else if (scene.cursors.right.isDown) {
-            velocityX = SPEED;
+            velocityX = KEYBOARD_SPEED;
             shark.setScale(-CHARACTER_SCALES.shark, CHARACTER_SCALES.shark);
         }
         
         if (scene.cursors.up.isDown) {
-            velocityY = -SPEED;
+            velocityY = -KEYBOARD_SPEED;
         } else if (scene.cursors.down.isDown) {
-            velocityY = SPEED;
+            velocityY = KEYBOARD_SPEED;
         }
         
         if (velocityX !== 0 && velocityY !== 0) {
