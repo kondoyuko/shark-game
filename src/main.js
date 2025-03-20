@@ -397,6 +397,11 @@ function endGame() {
     const gameOverContainer = scene.add.container(width / 2, height / 2);
     gameOverContainer.setDepth(1000);  // 最前面に表示
     
+    // 半透明の黒背景を追加
+    const background = scene.add.rectangle(0, 0, width, height, 0x000000, 0.7);
+    background.setOrigin(0.5);
+    background.setPosition(0, 0);
+    
     const timeUpText = scene.add.text(0, -height * 0.2, '時間切れ！', {
         fontSize: `${sizes.gameOver}px`,
         fill: '#fff',
@@ -408,47 +413,22 @@ function endGame() {
         fill: '#fff'
     }).setOrigin(0.5);
     
-    // リスタートボタンのスタイルを改善
-    const restartButton = scene.add.text(0, height * 0.1, 'もう一度遊ぶ', {
+    const restartText = scene.add.text(0, height * 0.1, 'タップしてもう一度遊ぶ', {
         fontSize: `${sizes.button}px`,
         fill: '#fff',
-        backgroundColor: '#000',
-        padding: { x: 40, y: 20 },  // パディングを大きく
-        fixedWidth: width * 0.4,    // 固定幅を設定
-        align: 'center'             // テキストを中央寄せ
+        align: 'center'
     }).setOrigin(0.5);
     
-    // ヒットエリアを拡大
-    const hitArea = new Phaser.Geom.Rectangle(
-        -width * 0.2,   // 左端
-        -height * 0.05, // 上端
-        width * 0.4,    // 幅
-        height * 0.1    // 高さ
-    );
-    
-    restartButton.setInteractive({ 
-        hitArea: hitArea,
-        useHandCursor: true,
-        draggable: false
-    });
-    
-    // ホバー効果を追加
-    restartButton.on('pointerover', () => {
-        restartButton.setStyle({ fill: '#000', backgroundColor: '#fff' });
-    });
-    
-    restartButton.on('pointerout', () => {
-        restartButton.setStyle({ fill: '#fff', backgroundColor: '#000' });
-    });
-    
-    restartButton.on('pointerdown', () => {
+    // 画面全体をクリック可能に
+    background.setInteractive({ useHandCursor: true });
+    background.on('pointerdown', () => {
         gameOverContainer.destroy();
         scene.time.delayedCall(100, () => {
             restartGame();
         });
     });
     
-    gameOverContainer.add([timeUpText, finalScore, restartButton]);
+    gameOverContainer.add([background, timeUpText, finalScore, restartText]);
 }
 
 function restartGame() {
