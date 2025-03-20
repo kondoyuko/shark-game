@@ -19,11 +19,12 @@ const GAME_DURATION = 30;
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 800,
-    height: 600,
     backgroundColor: '#4488AA',
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
+        parent: 'game-container',
+        width: window.innerHeight * 0.75,  // 縦長の画面サイズ（4:3比率）
+        height: window.innerHeight,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
@@ -35,12 +36,47 @@ const config = {
     },
     scene: {
         create: create,
-        update: update
+        update: update,
+        resize: resize
     }
 };
 
-// ゲームインスタンスの作成
+// ゲームの初期化
 const game = new Phaser.Game(config);
+
+// 画面サイズに応じたフォントサイズを計算
+function calculateFontSize(baseSize) {
+    const height = game.scale.height;
+    const width = game.scale.width;
+    const minDimension = Math.min(width, height);
+    const scaleFactor = minDimension / 400; // 基準値を400pxに設定
+    return Math.max(Math.floor(baseSize * scaleFactor), 12); // 最小サイズを12pxに設定
+}
+
+// UI要素のサイズを計算
+function calculateUISize() {
+    return {
+        title: calculateFontSize(24),
+        sharkEmoji: calculateFontSize(32),
+        fishEmoji: calculateFontSize(24),
+        button: calculateFontSize(20),
+        text: calculateFontSize(16),
+        score: calculateFontSize(14),
+        gameOver: calculateFontSize(32)
+    };
+}
+
+// ゲーム画面のリサイズ処理
+function resize() {
+    const height = window.innerHeight;
+    const width = height * 0.75;
+    game.scale.resize(width, height);
+}
+
+// リサイズイベントの監視
+window.addEventListener('resize', () => {
+    resize();
+});
 
 function create() {
     scene = this;
@@ -85,33 +121,37 @@ function create() {
 
 function createStartScreen() {
     startScreen = scene.add.container(0, 0);
+    const sizes = calculateUISize();
+    const centerX = game.scale.width / 2;
+    const height = game.scale.height;
+    const margin = height * 0.05; // 画面の5%を余白として使用
     
-    const title = scene.add.text(config.width / 2, 120, 'シャーくんの\nおさかなキャッチ！', {
-        fontSize: '36px',
+    const title = scene.add.text(centerX, margin + height * 0.1, 'シャーくんの\nおさかなキャッチ！', {
+        fontSize: `${sizes.title}px`,
         fill: '#fff',
         align: 'center',
         lineSpacing: 10
     }).setOrigin(0.5);
     
-    const sharkEmoji = scene.add.text(config.width / 2, 230, '🦈', {
-        fontSize: '64px',
-        padding: { x: 20, y: 20 }
+    const sharkEmoji = scene.add.text(centerX, height * 0.3, '🦈', {
+        fontSize: `${sizes.sharkEmoji}px`,
+        padding: { x: 10, y: 10 }
     }).setOrigin(0.5);
     
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const controlsText = isMobile ? 
-        'タップ＆ドラッグでシャーくんを動かして\n30秒以内にたくさんのおさかなを食べよう！' :
-        '矢印キーでシャーくんを動かして\n30秒以内にたくさんのおさかなを食べよう！';
+        'タップ＆ドラッグで\nシャーくんを動かして\n30秒以内にたくさんの\nおさかなを食べよう！' :
+        '矢印キーで\nシャーくんを動かして\n30秒以内にたくさんの\nおさかなを食べよう！';
     
-    const instructions = scene.add.text(config.width / 2, 320, controlsText, {
-        fontSize: '20px',
+    const instructions = scene.add.text(centerX, height * 0.5, controlsText, {
+        fontSize: `${sizes.text}px`,
         fill: '#fff',
         align: 'center',
         lineSpacing: 10
     }).setOrigin(0.5);
     
-    const startButton = scene.add.text(config.width / 2, 400, 'クリックしてスタート！', {
-        fontSize: '24px',
+    const startButton = scene.add.text(centerX, height * 0.7, 'クリックしてスタート！', {
+        fontSize: `${sizes.button}px`,
         fill: '#fff',
         backgroundColor: '#4a90e2',
         padding: { x: 20, y: 10 }
@@ -122,13 +162,12 @@ function createStartScreen() {
         .on('pointerout', () => startButton.setStyle({ fill: '#fff' }))
         .on('pointerdown', () => startGame());
 
-    // ハイスコアを右上に表示
     const highScoreText = scene.add.text(
-        config.width - 16,
-        16,
+        game.scale.width - margin,
+        margin,
         'ハイスコア: ' + highScore + '匹',
         {
-            fontSize: '20px',
+            fontSize: `${sizes.score}px`,
             fill: '#fff'
         }
     ).setOrigin(1, 0);
@@ -136,70 +175,66 @@ function createStartScreen() {
     startScreen.add([title, sharkEmoji, instructions, startButton, highScoreText]);
 }
 
-function createGameOverScreen() {
-    gameOverScreen = scene.add.container(0, 0);
-    
-    const gameOverText = scene.add.text(config.width / 2, 200, 'ゲームオーバー！', {
-        fontSize: '48px',
-        fill: '#fff'
-    }).setOrigin(0.5);
-    
-    const finalScore = scene.add.text(config.width / 2, 300, `スコア: ${score}匹`, {
-        fontSize: '32px',
-        fill: '#fff'
-    }).setOrigin(0.5);
-    
-    const highScoreText = scene.add.text(config.width / 2, 350, `ハイスコア: ${highScore}匹`, {
-        fontSize: '32px',
-        fill: '#fff'
-    }).setOrigin(0.5);
-    
-    const restartButton = scene.add.text(config.width / 2, 450, 'もう一度遊ぶ', {
-        fontSize: '28px',
-        fill: '#fff',
-        backgroundColor: '#4a90e2',
-        padding: { x: 20, y: 10 }
-    }).setOrigin(0.5);
-    
-    restartButton.setInteractive({ useHandCursor: true })
-        .on('pointerover', () => restartButton.setStyle({ fill: '#ff0' }))
-        .on('pointerout', () => restartButton.setStyle({ fill: '#fff' }))
-        .on('pointerdown', () => {
-            gameOverScreen.destroy();
-            createStartScreen.call(scene);
-        });
-    
-    gameOverScreen.add([gameOverText, finalScore, highScoreText, restartButton]);
-}
-
 function startGame() {
     if (gameStarted) return;
     
-    // スタート画面を削除
     if (startScreen) {
         startScreen.destroy();
     }
     
-    // ゲーム状態の初期化
     gameStarted = true;
     gameOver = false;
     score = 0;
     timeLeft = GAME_DURATION;
     
-    // シャーくんの作成
-    shark = scene.add.text(400, 225, '🦈', { 
-        fontSize: '36px',
-        padding: { x: 10, y: 10 }
+    const sizes = calculateUISize();
+    const width = game.scale.width;
+    const minDimension = Math.min(width, game.scale.height);
+    const margin = Math.max(minDimension * 0.03, 10); // 最小マージンを10pxに設定
+    
+    // スコア表示のレイアウト計算
+    const scoreY = margin;
+    
+    // 残り時間とスコアを1行に結合
+    timeText = scene.add.text(margin, scoreY, '残り時間: ' + timeLeft + '秒', {
+        fontSize: `${sizes.score}px`,
+        fill: '#fff'
     });
+
+    scoreText = scene.add.text(width / 2, scoreY, 'スコア: 0匹', {
+        fontSize: `${sizes.score}px`,
+        fill: '#fff'
+    }).setOrigin(0.5, 0);
+
+    highScoreText = scene.add.text(width - margin, scoreY, 'ハイスコア: ' + highScore + '匹', {
+        fontSize: `${sizes.score}px`,
+        fill: '#fff'
+    }).setOrigin(1, 0);
+
+    // プレイエリアの境界を設定
+    const headerHeight = sizes.score + margin * 2;
+    const playAreaTop = headerHeight;
+    const playAreaBottom = game.scale.height - margin;
+    const playAreaLeft = margin;
+    const playAreaRight = width - margin;
+    
+    // シャークの作成
+    shark = scene.add.text(
+        width / 2,
+        playAreaTop + (playAreaBottom - playAreaTop) / 2,
+        '🦈',
+        { 
+            fontSize: `${sizes.sharkEmoji}px`,
+            padding: { x: 5, y: 5 }
+        }
+    );
     shark.setOrigin(0.5);
     
-    // シャーくんの物理演算設定
     scene.physics.world.enable(shark);
     shark.body.setCollideWorldBounds(true);
     shark.body.setBounce(0);
     shark.body.setDrag(0);
     
-    // 当たり判定のサイズと位置を調整（向きに関係なく中央に固定）
     const hitboxSize = Math.min(shark.width, shark.height) * 0.6;
     shark.body.setSize(hitboxSize, hitboxSize);
     shark.body.setOffset(
@@ -207,32 +242,17 @@ function startGame() {
         (shark.height - hitboxSize) / 2
     );
 
-    // 魚グループの作成
+    // シャークの移動範囲を制限
+    shark.body.setBoundsRectangle(new Phaser.Geom.Rectangle(
+        playAreaLeft,
+        playAreaTop,
+        playAreaRight - playAreaLeft,
+        playAreaBottom - playAreaTop
+    ));
+
     fishes = scene.physics.add.group();
-
-    // タイマーテキストの作成（上部に配置）
-    timeText = scene.add.text(16, 16, '残り時間: ' + timeLeft + '秒', {
-        fontSize: '24px',
-        fill: '#fff'
-    });
-
-    // スコアテキストの作成（タイマーの下に配置）
-    scoreText = scene.add.text(16, 56, 'スコア: 0匹', {
-        fontSize: '24px',
-        fill: '#fff'
-    });
-
-    // ハイスコアテキストの作成（右上に配置）
-    highScoreText = scene.add.text(config.width - 16, 16, 'ハイスコア: ' + highScore + '匹', {
-        fontSize: '24px',
-        fill: '#fff'
-    });
-    highScoreText.setOrigin(1, 0);
-
-    // 衝突判定の設定
     scene.physics.add.overlap(shark, fishes, collectFish, null, scene);
 
-    // 魚の生成タイマー
     scene.time.addEvent({
         delay: 1000,
         callback: createFish,
@@ -240,7 +260,6 @@ function startGame() {
         loop: true
     });
 
-    // ゲームタイマー
     scene.time.addEvent({
         delay: 1000,
         callback: updateTimer,
@@ -248,7 +267,6 @@ function startGame() {
         loop: true
     });
 
-    // 最初の魚を生成
     createFish();
 }
 
@@ -278,7 +296,7 @@ function update() {
 
     // 画面外の魚を削除
     fishes.getChildren().forEach((fish) => {
-        if (fish.x < -100 || fish.x > config.width + 100) {
+        if (fish.x < -100 || fish.x > game.scale.width + 100) {
             fish.destroy();
         }
     });
@@ -299,17 +317,30 @@ function collectFish(shark, fish) {
 function createFish() {
     if (!gameStarted || gameOver) return;
 
-    const x = Math.random() < 0.5 ? -50 : config.width + 50;
-    const y = Phaser.Math.Between(50, config.height - 50);
+    const width = game.scale.width;
+    const height = game.scale.height;
+    const minDimension = Math.min(width, height);
+    const margin = Math.max(minDimension * 0.03, 10);
+    const sizes = calculateUISize();
+    
+    // プレイエリアの境界を計算
+    const headerHeight = sizes.score + margin * 2;
+    const playAreaTop = headerHeight;
+    const playAreaBottom = height - margin;
+    
+    const x = Math.random() < 0.5 ? -50 : width + 50;
+    const y = Phaser.Math.Between(
+        playAreaTop + sizes.fishEmoji / 2,
+        playAreaBottom - sizes.fishEmoji / 2
+    );
     
     const fish = scene.add.text(x, y, '🐟', { 
-        fontSize: '24px'
+        fontSize: `${sizes.fishEmoji}px`
     });
     fish.setOrigin(0.5);
     
     scene.physics.world.enable(fish);
     
-    // 魚の当たり判定のサイズと位置を調整（向きに関係なく中央に固定）
     const hitboxSize = Math.min(fish.width, fish.height) * 0.6;
     fish.body.setSize(hitboxSize, hitboxSize);
     fish.body.setOffset(
@@ -319,7 +350,7 @@ function createFish() {
     
     fishes.add(fish);
     
-    const speed = Phaser.Math.Between(100, 300);
+    const speed = Phaser.Math.Between(150, 300);
     if (x < 0) {
         fish.body.setVelocityX(speed);
         fish.setScale(-1, 1);
@@ -376,4 +407,42 @@ function restartGame() {
     
     // スタート画面を作成
     createStartScreen.call(scene);
+}
+
+function createGameOverScreen() {
+    gameOverScreen = scene.add.container(0, 0);
+    
+    const sizes = calculateUISize();
+    const centerX = game.scale.width / 2;
+    const height = game.scale.height;
+    const margin = height * 0.05;
+    
+    const gameOverText = scene.add.text(centerX, margin + height * 0.2, 'ゲームオーバー！', {
+        fontSize: `${sizes.gameOver}px`,
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const finalScore = scene.add.text(centerX, height * 0.4, `スコア: ${score}匹`, {
+        fontSize: `${sizes.score}px`,
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const highScoreText = scene.add.text(centerX, height * 0.5, `ハイスコア: ${highScore}匹`, {
+        fontSize: `${sizes.score}px`,
+        fill: '#fff'
+    }).setOrigin(0.5);
+    
+    const restartButton = scene.add.text(centerX, height * 0.65, 'もう一度遊ぶ', {
+        fontSize: `${sizes.button}px`,
+        fill: '#fff',
+        backgroundColor: '#4a90e2',
+        padding: { x: 20, y: 10 }
+    }).setOrigin(0.5);
+    
+    restartButton.setInteractive({ useHandCursor: true })
+        .on('pointerover', () => restartButton.setStyle({ fill: '#ff0' }))
+        .on('pointerout', () => restartButton.setStyle({ fill: '#fff' }))
+        .on('pointerdown', () => restartGame());
+    
+    gameOverScreen.add([gameOverText, finalScore, highScoreText, restartButton]);
 }
