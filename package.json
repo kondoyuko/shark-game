@@ -1,7 +1,7 @@
 {
   "name": "shark-game",
   "version": "1.0.0",
-  "description": "A simple shark game built with Phaser",
+  "description": "A fun browser game where you control a shark to catch fish",
   "main": "src/main.js",
   "scripts": {
     "start": "http-server"
@@ -11,5 +11,6 @@
   },
   "devDependencies": {
     "http-server": "^14.1.1"
-  }
+  },
+  "license": "MIT"
 }
