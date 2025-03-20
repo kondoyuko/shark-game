@@ -1,0 +1,158 @@
+/* ピクセルアートの基本スタイル */
+.pixel-art {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transform-origin: center;
+  image-rendering: pixelated;
+}
+
+/* 新郎のピクセルアート */
+.groom {
+  box-shadow:
+    /* 赤髪 */
+    4px 1px #FF4444, 5px 1px #FF4444, 6px 1px #FF4444, 7px 1px #FF4444, 8px 1px #FF4444, 9px 1px #FF4444, 10px 1px #FF4444, 11px 1px #FF4444,
+    3px 2px #FF4444, 4px 2px #D13B27, 5px 2px #D13B27, 6px 2px #D13B27, 7px 2px #D13B27, 8px 2px #D13B27, 9px 2px #D13B27, 10px 2px #D13B27, 11px 2px #FF4444, 12px 2px #FF4444,
+    3px 3px #FF4444, 4px 3px #D13B27, 5px 3px #D13B27, 6px 3px #D13B27, 7px 3px #D13B27, 8px 3px #D13B27, 9px 3px #D13B27, 10px 3px #D13B27, 11px 3px #D13B27, 12px 3px #FF4444,
+    /* 黒眼鏡 */
+    4px 4px #000000, 5px 4px #000000, 6px 4px #000000, 7px 4px #000000, 8px 4px #000000, 9px 4px #000000, 10px 4px #000000, 11px 4px #000000,
+    4px 5px #000000, 5px 5px #FFD7B5, 6px 5px #FFD7B5, 7px 5px #000000, 8px 5px #000000, 9px 5px #FFD7B5, 10px 5px #FFD7B5, 11px 5px #000000,
+    4px 6px #000000, 5px 6px #FFD7B5, 6px 6px #FFD7B5, 7px 6px #000000, 8px 6px #000000, 9px 6px #FFD7B5, 10px 6px #FFD7B5, 11px 6px #000000,
+    4px 7px #000000, 5px 7px #000000, 6px 7px #000000, 7px 7px #000000, 8px 7px #000000, 9px 7px #000000, 10px 7px #000000, 11px 7px #000000,
+    /* 顔 */
+    4px 8px #FFD7B5, 5px 8px #FFD7B5, 6px 8px #FFD7B5, 7px 8px #FFD7B5, 8px 8px #FFD7B5, 9px 8px #FFD7B5, 10px 8px #FFD7B5, 11px 8px #FFD7B5,
+    4px 9px #FFD7B5, 5px 9px #FFD7B5, 6px 9px #FFD7B5, 7px 9px #FFD7B5, 8px 9px #FFD7B5, 9px 9px #FFD7B5, 10px 9px #FFD7B5, 11px 9px #FFD7B5,
+    /* 首 */
+    7px 10px #FFD7B5, 8px 10px #FFD7B5,
+    /* スーツ上部 */
+    5px 11px #2C3E50, 6px 11px #2C3E50, 7px 11px #2C3E50, 8px 11px #2C3E50, 9px 11px #2C3E50, 10px 11px #2C3E50,
+    4px 12px #2C3E50, 5px 12px #2C3E50, 6px 12px #FFFFFF, 7px 12px #FFFFFF, 8px 12px #FFFFFF, 9px 12px #2C3E50, 10px 12px #2C3E50, 11px 12px #2C3E50,
+    4px 13px #2C3E50, 5px 13px #2C3E50, 6px 13px #2C3E50, 7px 13px #2C3E50, 8px 13px #2C3E50, 9px 13px #2C3E50, 10px 13px #2C3E50, 11px 13px #2C3E50,
+    /* スーツ下部 */
+    5px 14px #2C3E50, 6px 14px #2C3E50, 7px 14px #2C3E50, 8px 14px #2C3E50, 9px 14px #2C3E50, 10px 14px #2C3E50,
+    5px 15px #2C3E50, 6px 15px #2C3E50, 7px 15px #2C3E50, 8px 15px #2C3E50, 9px 15px #2C3E50, 10px 15px #2C3E50,
+    5px 16px #2C3E50, 6px 16px #2C3E50, 7px 16px #2C3E50, 8px 16px #2C3E50, 9px 16px #2C3E50, 10px 16px #2C3E50,
+    /* 足 */
+    5px 17px #000000, 6px 17px #000000, 9px 17px #000000, 10px 17px #000000,
+    5px 18px #000000, 6px 18px #000000, 9px 18px #000000, 10px 18px #000000;
+}
+
+/* 新婦のピクセルアート */
+.bride {
+  box-shadow:
+    /* 髪 */
+    3px 1px #FF9C9C, 4px 1px #FF9C9C, 5px 1px #FF9C9C, 6px 1px #FF9C9C, 7px 1px #FF9C9C, 8px 1px #FF9C9C, 9px 1px #FF9C9C, 10px 1px #FF9C9C,
+    2px 2px #FF9C9C, 3px 2px #FF9C9C, 4px 2px #FF9C9C, 5px 2px #FF9C9C, 6px 2px #FF9C9C, 7px 2px #FF9C9C, 8px 2px #FF9C9C, 9px 2px #FF9C9C, 10px 2px #FF9C9C, 11px 2px #FF9C9C,
+    2px 3px #FF9C9C, 3px 3px #FF9C9C, 4px 3px #FF9C9C, 5px 3px #FF9C9C, 6px 3px #FF9C9C, 7px 3px #FF9C9C, 8px 3px #FF9C9C, 9px 3px #FF9C9C, 10px 3px #FF9C9C, 11px 3px #FF9C9C, 12px 3px #FF9C9C,
+    2px 4px #FF9C9C, 3px 4px #FF9C9C, 12px 4px #FF9C9C, 13px 4px #FF9C9C,
+    2px 5px #FF9C9C, 3px 5px #FF9C9C, 12px 5px #FF9C9C, 13px 5px #FF9C9C,
+    2px 6px #FF9C9C, 3px 6px #FF9C9C, 12px 6px #FF9C9C, 13px 6px #FF9C9C,
+    2px 7px #FF9C9C, 3px 7px #FF9C9C, 12px 7px #FF9C9C, 13px 7px #FF9C9C,
+    /* 赤眼鏡 */
+    4px 4px #FF0000, 5px 4px #FF0000, 6px 4px #FF0000, 7px 4px #FF0000, 8px 4px #FF0000, 9px 4px #FF0000, 10px 4px #FF0000, 11px 4px #FF0000,
+    4px 5px #FF0000, 5px 5px #FFD7B5, 6px 5px #FFD7B5, 7px 5px #FF0000, 8px 5px #FF0000, 9px 5px #FFD7B5, 10px 5px #FFD7B5, 11px 5px #FF0000,
+    4px 6px #FF0000, 5px 6px #FFD7B5, 6px 6px #FFD7B5, 7px 6px #FF0000, 8px 6px #FF0000, 9px 6px #FFD7B5, 10px 6px #FFD7B5, 11px 6px #FF0000,
+    4px 7px #FF0000, 5px 7px #FF0000, 6px 7px #FF0000, 7px 7px #FF0000, 8px 7px #FF0000, 9px 7px #FF0000, 10px 7px #FF0000, 11px 7px #FF0000,
+    /* 顔 */
+    2px 8px #FF9C9C, 3px 8px #FF9C9C, 4px 8px #FFD7B5, 5px 8px #FFD7B5, 6px 8px #FFD7B5, 7px 8px #FFD7B5, 8px 8px #FFD7B5, 9px 8px #FFD7B5, 10px 8px #FFD7B5, 11px 8px #FFD7B5, 12px 8px #FF9C9C, 13px 8px #FF9C9C,
+    2px 9px #FF9C9C, 3px 9px #FF9C9C, 4px 9px #FFD7B5, 5px 9px #FFD7B5, 6px 9px #FFD7B5, 7px 9px #FFD7B5, 8px 9px #FFD7B5, 9px 9px #FFD7B5, 10px 9px #FFD7B5, 11px 9px #FFD7B5, 12px 9px #FF9C9C, 13px 9px #FF9C9C,
+    /* 首 */
+    7px 10px #FFD7B5, 8px 10px #FFD7B5,
+    /* ドレス上部 */
+    5px 11px #FFFFFF, 6px 11px #FFFFFF, 7px 11px #FFFFFF, 8px 11px #FFFFFF, 9px 11px #FFFFFF, 10px 11px #FFFFFF,
+    4px 12px #FFFFFF, 5px 12px #FFB6C1, 6px 12px #FFFFFF, 7px 12px #FFFFFF, 8px 12px #FFFFFF, 9px 12px #FFFFFF, 10px 12px #FFB6C1, 11px 12px #FFFFFF,
+    4px 13px #FFFFFF, 5px 13px #FFFFFF, 6px 13px #FFFFFF, 7px 13px #FFFFFF, 8px 13px #FFFFFF, 9px 13px #FFFFFF, 10px 13px #FFFFFF, 11px 13px #FFFFFF,
+    /* ドレス下部 */
+    3px 14px #FFFFFF, 4px 14px #FFFFFF, 5px 14px #FFFFFF, 6px 14px #FFFFFF, 7px 14px #FFFFFF, 8px 14px #FFFFFF, 9px 14px #FFFFFF, 10px 14px #FFFFFF, 11px 14px #FFFFFF, 12px 14px #FFFFFF,
+    3px 15px #FFFFFF, 4px 15px #FFB6C1, 5px 15px #FFFFFF, 6px 15px #FFFFFF, 7px 15px #FFFFFF, 8px 15px #FFFFFF, 9px 15px #FFFFFF, 10px 15px #FFFFFF, 11px 15px #FFB6C1, 12px 15px #FFFFFF,
+    3px 16px #FFFFFF, 4px 16px #FFFFFF, 5px 16px #FFFFFF, 6px 16px #FFFFFF, 7px 16px #FFFFFF, 8px 16px #FFFFFF, 9px 16px #FFFFFF, 10px 16px #FFFFFF, 11px 16px #FFFFFF, 12px 16px #FFFFFF,
+    /* 足 */
+    5px 17px #FFFFFF, 6px 17px #FFFFFF, 9px 17px #FFFFFF, 10px 17px #FFFFFF,
+    5px 18px #FFB6C1, 6px 18px #FFB6C1, 9px 18px #FFB6C1, 10px 18px #FFB6C1;
+}
+
+/* サメのピクセルアート */
+.shark {
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  clip-path: polygon(
+    /* サメの形状 */
+    25% 50%,  /* 頭の先端 */
+    40% 25%,  /* 上部ライン */
+    75% 25%,
+    90% 40%,  /* 背びれ */
+    75% 50%,
+    90% 60%,  /* 尾びれ上部 */
+    75% 75%,
+    40% 75%,  /* 下部ライン */
+    25% 50%   /* 頭の先端に戻る */
+  );
+  background-color: #808080;  /* サメの色 */
+}
+
+/* お魚のピクセルアート */
+.fish {
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  clip-path: polygon(
+    /* 魚の形状 */
+    20% 50%,  /* 頭の先端 */
+    40% 25%,  /* 上部ライン */
+    60% 25%,
+    80% 50%,  /* 尾の付け根 */
+    100% 25%, /* 尾びれ上部 */
+    80% 50%,  /* 尾の中心 */
+    100% 75%, /* 尾びれ下部 */
+    80% 50%,  /* 尾の付け根 */
+    60% 75%,
+    40% 75%,  /* 下部ライン */
+    20% 50%   /* 頭の先端に戻る */
+  );
+  background-color: #FFD700;  /* 金色の魚 */
+}
+
+/* パワーアップアイテム（★） */
+.powerup {
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  clip-path: polygon(
+    /* 五角形の星 */
+    50% 0%,    /* 上の頂点 */
+    61% 35%,   /* 右上の内側 */
+    98% 35%,   /* 右上の頂点 */
+    68% 57%,   /* 右下の内側 */
+    79% 91%,   /* 右下の頂点 */
+    50% 70%,   /* 下の内側 */
+    21% 91%,   /* 左下の頂点 */
+    32% 57%,   /* 左下の内側 */
+    2% 35%,    /* 左上の頂点 */
+    39% 35%    /* 左上の内側 */
+  );
+  background-color: #FFD700;  /* 金色の星 */
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.swimming {
+  animation: swim 1s ease-in-out infinite;
+}
+
+@keyframes swim {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}

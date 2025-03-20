@@ -1,0 +1,15 @@
+{
+  "name": "shark-game",
+  "version": "1.0.0",
+  "description": "A simple shark game built with Phaser",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "http-server"
+  },
+  "dependencies": {
+    "phaser": "^3.55.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
