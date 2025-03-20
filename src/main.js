@@ -15,6 +15,49 @@ let highScoreText;
 let timeLeft = 30;
 const GAME_DURATION = 30;
 
+// 定数
+const BASE_FONT_SIZES = {
+    title: 40,
+    sharkEmoji: 56,
+    fishEmoji: 40,
+    button: 28,
+    text: 24,
+    score: 20,
+    gameOver: 48
+};
+
+// シャークと魚のサイズ
+const CHARACTER_SCALES = {
+    shark: 1.5,
+    fish: 1.2
+};
+
+// ゲーム内の余白（キャラクターが欠けないように）
+const GAME_PADDING = {
+    top: 40,
+    bottom: 40,
+    left: 40,
+    right: 40
+};
+
+// タッチ操作の状態
+let touchState = {
+    isFlicking: false,
+    velocityX: 0,
+    velocityY: 0,
+    lastX: 0,
+    lastY: 0,
+    lastTime: 0
+};
+
+// フリック操作の設定
+const FLICK_CONFIG = {
+    minSwipeDistance: 10,
+    friction: 0.95,
+    maxSpeed: 500,
+    minSpeed: 50
+};
+
 // Phaserの設定
 const config = {
     type: Phaser.AUTO,
@@ -46,23 +89,22 @@ const game = new Phaser.Game(config);
 
 // 画面サイズに応じたフォントサイズを計算
 function calculateFontSize(baseSize) {
-    const height = game.scale.height;
     const width = game.scale.width;
-    const minDimension = Math.min(width, height);
-    const scaleFactor = minDimension / 400; // 基準値を400pxに設定
-    return Math.max(Math.floor(baseSize * scaleFactor), 12); // 最小サイズを12pxに設定
+    const height = game.scale.height;
+    const scaleFactor = Math.min(width / 800, height / 600);
+    return Math.max(Math.round(baseSize * scaleFactor), 16);
 }
 
 // UI要素のサイズを計算
 function calculateUISize() {
     return {
-        title: calculateFontSize(24),
-        sharkEmoji: calculateFontSize(32),
-        fishEmoji: calculateFontSize(24),
-        button: calculateFontSize(20),
-        text: calculateFontSize(16),
-        score: calculateFontSize(14),
-        gameOver: calculateFontSize(32)
+        title: calculateFontSize(BASE_FONT_SIZES.title),
+        sharkEmoji: calculateFontSize(BASE_FONT_SIZES.sharkEmoji),
+        fishEmoji: calculateFontSize(BASE_FONT_SIZES.fishEmoji),
+        button: calculateFontSize(BASE_FONT_SIZES.button),
+        text: calculateFontSize(BASE_FONT_SIZES.text),
+        score: calculateFontSize(BASE_FONT_SIZES.score),
+        gameOver: calculateFontSize(BASE_FONT_SIZES.gameOver)
     };
 }
 
@@ -82,39 +124,91 @@ function create() {
     scene = this;
     this.cursors = this.input.keyboard.createCursorKeys();
     
-    // スタート画面の作成
-    createStartScreen.call(this);
+    // タッチ入力の設定
+    this.input.addPointer(1);
     
-    // タッチ操作の初期化
-    this.touchStartPos = null;
+    // タッチ開始時
+    this.input.on('pointerdown', function (pointer) {
+        touchState.isFlicking = true;
+        touchState.lastX = pointer.x;
+        touchState.lastY = pointer.y;
+        touchState.lastTime = pointer.time;
+        touchState.velocityX = 0;
+        touchState.velocityY = 0;
+    });
     
-    // タッチ操作のイベントリスナー
-    this.input.on('pointermove', (pointer) => {
-        if (this.touchStartPos && gameStarted && !gameOver) {
-            const dx = pointer.x - this.touchStartPos.x;
-            const dy = pointer.y - this.touchStartPos.y;
+    // タッチ移動中
+    this.input.on('pointermove', function (pointer) {
+        if (touchState.isFlicking && shark && gameStarted && !gameOver) {
+            const dx = pointer.x - touchState.lastX;
+            const dy = pointer.y - touchState.lastY;
+            const dt = pointer.time - touchState.lastTime;
             
-            if (Math.abs(dx) > 10) {
-                shark.body.setVelocityX(Math.sign(dx) * 300);
-                shark.setScale(dx > 0 ? -1 : 1, 1);
+            if (dt > 0) {
+                // 速度を計算（ピクセル/秒）
+                touchState.velocityX = (dx / dt) * 1000;
+                touchState.velocityY = (dy / dt) * 1000;
+                
+                // 最大速度を制限
+                touchState.velocityX = Phaser.Math.Clamp(touchState.velocityX, -FLICK_CONFIG.maxSpeed, FLICK_CONFIG.maxSpeed);
+                touchState.velocityY = Phaser.Math.Clamp(touchState.velocityY, -FLICK_CONFIG.maxSpeed, FLICK_CONFIG.maxSpeed);
             }
             
-            if (Math.abs(dy) > 10) {
-                shark.body.setVelocityY(Math.sign(dy) * 300);
-            }
+            touchState.lastX = pointer.x;
+            touchState.lastY = pointer.y;
+            touchState.lastTime = pointer.time;
             
-            this.touchStartPos = { x: pointer.x, y: pointer.y };
+            // シャークの向きを設定
+            if (Math.abs(dx) > FLICK_CONFIG.minSwipeDistance) {
+                shark.setScale(dx > 0 ? -CHARACTER_SCALES.shark : CHARACTER_SCALES.shark, CHARACTER_SCALES.shark);
+            }
         }
     });
     
-    this.input.on('pointerdown', (pointer) => {
-        this.touchStartPos = { x: pointer.x, y: pointer.y };
+    // タッチ終了時
+    this.input.on('pointerup', function () {
+        touchState.isFlicking = false;
     });
     
-    this.input.on('pointerup', () => {
-        this.touchStartPos = null;
-        if (gameStarted && !gameOver) {
-            shark.body.setVelocity(0, 0);
+    createStartScreen.call(this);
+}
+
+function update() {
+    if (!gameStarted || gameOver) return;
+    
+    const SPEED = 300;
+
+    // キーボード操作
+    if (scene.cursors.left.isDown) {
+        shark.body.setVelocityX(-SPEED);
+        shark.setScale(CHARACTER_SCALES.shark, CHARACTER_SCALES.shark);
+    } else if (scene.cursors.right.isDown) {
+        shark.body.setVelocityX(SPEED);
+        shark.setScale(-CHARACTER_SCALES.shark, CHARACTER_SCALES.shark);
+    } else if (!touchState.isFlicking) {
+        // フリック中でない場合は徐々に減速
+        touchState.velocityX *= FLICK_CONFIG.friction;
+        touchState.velocityY *= FLICK_CONFIG.friction;
+        
+        // 最小速度以下になったら停止
+        if (Math.abs(touchState.velocityX) < FLICK_CONFIG.minSpeed) touchState.velocityX = 0;
+        if (Math.abs(touchState.velocityY) < FLICK_CONFIG.minSpeed) touchState.velocityY = 0;
+        
+        shark.body.setVelocity(touchState.velocityX, touchState.velocityY);
+    }
+    
+    if (scene.cursors.up.isDown) {
+        shark.body.setVelocityY(-SPEED);
+    } else if (scene.cursors.down.isDown) {
+        shark.body.setVelocityY(SPEED);
+    } else if (!touchState.isFlicking) {
+        shark.body.setVelocityY(touchState.velocityY);
+    }
+
+    // 画面外の魚を削除
+    fishes.getChildren().forEach((fish) => {
+        if (fish.x < -100 || fish.x > game.scale.width + 100) {
+            fish.destroy();
         }
     });
 }
@@ -229,6 +323,7 @@ function startGame() {
         }
     );
     shark.setOrigin(0.5);
+    shark.setScale(CHARACTER_SCALES.shark);
     
     scene.physics.world.enable(shark);
     shark.body.setCollideWorldBounds(true);
@@ -244,10 +339,10 @@ function startGame() {
 
     // シャークの移動範囲を制限
     shark.body.setBoundsRectangle(new Phaser.Geom.Rectangle(
-        playAreaLeft,
-        playAreaTop,
-        playAreaRight - playAreaLeft,
-        playAreaBottom - playAreaTop
+        GAME_PADDING.left,
+        GAME_PADDING.top,
+        game.scale.width - GAME_PADDING.left - GAME_PADDING.right,
+        game.scale.height - GAME_PADDING.top - GAME_PADDING.bottom
     ));
 
     fishes = scene.physics.add.group();
@@ -270,38 +365,6 @@ function startGame() {
     createFish();
 }
 
-function update() {
-    if (!gameStarted || gameOver) return;
-
-    const SPEED = 300;
-
-    // キーボード入力の処理
-    if (scene.cursors.left.isDown) {
-        shark.body.setVelocityX(-SPEED);
-        shark.setScale(1, 1);  // 左向きに移動する場合、サメは右向き
-    } else if (scene.cursors.right.isDown) {
-        shark.body.setVelocityX(SPEED);
-        shark.setScale(-1, 1);   // 右向きに移動する場合、サメは左向き
-    } else {
-        shark.body.setVelocityX(0);
-    }
-
-    if (scene.cursors.up.isDown) {
-        shark.body.setVelocityY(-SPEED);
-    } else if (scene.cursors.down.isDown) {
-        shark.body.setVelocityY(SPEED);
-    } else {
-        shark.body.setVelocityY(0);
-    }
-
-    // 画面外の魚を削除
-    fishes.getChildren().forEach((fish) => {
-        if (fish.x < -100 || fish.x > game.scale.width + 100) {
-            fish.destroy();
-        }
-    });
-}
-
 function collectFish(shark, fish) {
     fish.destroy();
     score++;
@@ -317,47 +380,39 @@ function collectFish(shark, fish) {
 function createFish() {
     if (!gameStarted || gameOver) return;
 
-    const width = game.scale.width;
-    const height = game.scale.height;
-    const minDimension = Math.min(width, height);
-    const margin = Math.max(minDimension * 0.03, 10);
-    const sizes = calculateUISize();
-    
-    // プレイエリアの境界を計算
-    const headerHeight = sizes.score + margin * 2;
-    const playAreaTop = headerHeight;
-    const playAreaBottom = height - margin;
-    
-    const x = Math.random() < 0.5 ? -50 : width + 50;
+    const x = Phaser.Math.Between(
+        GAME_PADDING.left,
+        game.scale.width - GAME_PADDING.right
+    );
     const y = Phaser.Math.Between(
-        playAreaTop + sizes.fishEmoji / 2,
-        playAreaBottom - sizes.fishEmoji / 2
+        GAME_PADDING.top,
+        game.scale.height - GAME_PADDING.bottom
     );
     
-    const fish = scene.add.text(x, y, '🐟', { 
-        fontSize: `${sizes.fishEmoji}px`
+    const fish = scene.add.text(x, y, '🐟', {
+        fontSize: calculateUISize().fishEmoji + 'px'
     });
     fish.setOrigin(0.5);
+    fish.setScale(CHARACTER_SCALES.fish);
     
     scene.physics.world.enable(fish);
     
-    const hitboxSize = Math.min(fish.width, fish.height) * 0.6;
-    fish.body.setSize(hitboxSize, hitboxSize);
-    fish.body.setOffset(
-        (fish.width - hitboxSize) / 2,
-        (fish.height - hitboxSize) / 2
+    // 移動範囲を制限
+    fish.body.setCollideWorldBounds(true);
+    fish.body.setBoundsRectangle(new Phaser.Geom.Rectangle(
+        GAME_PADDING.left,
+        GAME_PADDING.top,
+        game.scale.width - GAME_PADDING.left - GAME_PADDING.right,
+        game.scale.height - GAME_PADDING.top - GAME_PADDING.bottom
+    ));
+    
+    const speed = Phaser.Math.Between(150, 250);
+    fish.body.setVelocity(
+        Phaser.Math.Between(-speed, speed),
+        Phaser.Math.Between(-speed, speed)
     );
     
     fishes.add(fish);
-    
-    const speed = Phaser.Math.Between(150, 300);
-    if (x < 0) {
-        fish.body.setVelocityX(speed);
-        fish.setScale(-1, 1);
-    } else {
-        fish.body.setVelocityX(-speed);
-        fish.setScale(1, 1);
-    }
 }
 
 function updateTimer() {
