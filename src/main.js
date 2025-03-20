@@ -408,14 +408,39 @@ function endGame() {
         fill: '#fff'
     }).setOrigin(0.5);
     
+    // リスタートボタンのスタイルを改善
     const restartButton = scene.add.text(0, height * 0.1, 'もう一度遊ぶ', {
         fontSize: `${sizes.button}px`,
         fill: '#fff',
         backgroundColor: '#000',
-        padding: { x: 20, y: 10 }
+        padding: { x: 40, y: 20 },  // パディングを大きく
+        fixedWidth: width * 0.4,    // 固定幅を設定
+        align: 'center'             // テキストを中央寄せ
     }).setOrigin(0.5);
     
-    restartButton.setInteractive({ useHandCursor: true });
+    // ヒットエリアを拡大
+    const hitArea = new Phaser.Geom.Rectangle(
+        -width * 0.2,   // 左端
+        -height * 0.05, // 上端
+        width * 0.4,    // 幅
+        height * 0.1    // 高さ
+    );
+    
+    restartButton.setInteractive({ 
+        hitArea: hitArea,
+        useHandCursor: true,
+        draggable: false
+    });
+    
+    // ホバー効果を追加
+    restartButton.on('pointerover', () => {
+        restartButton.setStyle({ fill: '#000', backgroundColor: '#fff' });
+    });
+    
+    restartButton.on('pointerout', () => {
+        restartButton.setStyle({ fill: '#fff', backgroundColor: '#000' });
+    });
+    
     restartButton.on('pointerdown', () => {
         gameOverContainer.destroy();
         scene.time.delayedCall(100, () => {
